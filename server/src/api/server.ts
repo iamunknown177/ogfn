@@ -9,6 +9,7 @@ import { MatchmakingSession } from "../matchmaker/session";
 
 const sessions = new Map<string, MatchmakingSession>();
 const connectedPlayers = new Map<string, WebSocket>();
+const connectedAccountIds = new Set<string>();
 
 function setupMatchmakerRoutes(app: express.Application): void {
   app.get("/matchmaking/session/list", (_req, res) => {
@@ -100,6 +101,9 @@ function setupWebSocket(server: http.Server): void {
         if (msg.type === "ping") {
           ws.send(JSON.stringify({ type: "pong", timestamp: Date.now() }));
         }
+        if (msg.type === "auth" && msg.accountId) {
+          connectedAccountIds.add(msg.accountId);
+        }
       } catch {}
     });
 
@@ -137,14 +141,23 @@ export async function startApiServer(port: number): Promise<void> {
     res.json({ accountId: req.body.accountId || "anonymous", sessionId: "session-" + Date.now() });
   });
 
-  app.post("/fortnite/api/matchmaking/session/:sessionId/join", (req, res) => {
-    res.json({ status: "success", sessionId: req.params.sessionId });
-  });
-
   setupMatchmakerRoutes(app);
 
   app.get("/health", (_req, res) => {
     res.json({ status: "ok", version: "24.20", players: connectedPlayers.size });
+  });
+
+  app.get("/api/status", (_req, res) => {
+    res.json({
+      name: config.serverName,
+      version: config.version,
+      status: "online",
+      players: connectedPlayers.size,
+      maxPlayers: config.maxPlayers,
+      uptime: process.uptime(),
+      region: "NAE",
+      season: 24,
+    });
   });
 
   app.get("/", (_req, res) => {
@@ -156,6 +169,7 @@ export async function startApiServer(port: number): Promise<void> {
 
   return new Promise((resolve) => {
     server.listen(port, () => {
+      console.log(`[API] Server listening on port ${port}`);
       resolve();
     });
   });

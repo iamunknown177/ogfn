@@ -3,89 +3,323 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>OGFN Launcher</title>
+  <title>OGFN</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="titlebar">
     <div class="titlebar-drag">
-      <span class="titlebar-title">OGFN Launcher</span>
+      <div class="titlebar-logo">
+        <svg viewBox="0 0 20 20" width="16" height="16">
+          <defs><linearGradient id="tg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#a78bfa"/><stop offset="100%" style="stop-color:#6366f1"/></linearGradient></defs>
+          <rect rx="4" width="20" height="20" fill="url(#tg)"/>
+          <text x="10" y="14" text-anchor="middle" fill="#fff" font-size="9" font-weight="700" font-family="sans-serif">FN</text>
+        </svg>
+        <span>OGFN</span>
+      </div>
     </div>
     <div class="titlebar-buttons">
-      <button id="btn-minimize" class="titlebar-btn">−</button>
-      <button id="btn-close" class="titlebar-btn btn-close">✕</button>
+      <button id="btn-minimize" class="titlebar-btn">&#x2013;</button>
+      <button id="btn-close" class="titlebar-btn btn-close">&#x2715;</button>
     </div>
   </div>
 
+  <!-- LOGIN SCREEN -->
   <div id="login-screen" class="screen active">
-    <div class="login-container">
-      <div class="logo">
-        <h1>OGFN</h1>
-        <p>Fortnite 24.20</p>
-      </div>
-      <div class="login-form">
-        <button id="btn-discord-login" class="btn-discord">
-          <svg class="discord-icon" viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+    <div class="login-bg">
+      <div class="login-gradient"></div>
+      <div class="login-particles" id="login-particles"></div>
+    </div>
+    <div class="login-center">
+      <div class="login-card">
+        <div class="login-logo">
+          <svg viewBox="0 0 60 60" width="72" height="72">
+            <defs><linearGradient id="lg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#a78bfa"/><stop offset="100%" style="stop-color:#4f46e5"/></linearGradient></defs>
+            <rect rx="18" width="60" height="60" fill="url(#lg)"/>
+            <text x="30" y="38" text-anchor="middle" fill="#fff" font-size="22" font-weight="800" font-family="sans-serif">FN</text>
+          </svg>
+        </div>
+        <h1 class="login-title">OGFN</h1>
+        <p class="login-subtitle">OG Fortnite 24.20 Private Server</p>
+        <div class="login-divider"></div>
+        <button id="btn-discord-login" class="btn-discord-login">
+          <svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22">
             <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
           </svg>
-          Login with Discord
+          <span>Sign in with Discord</span>
         </button>
-        <p id="login-status" class="status-text"></p>
+        <p id="login-status" class="login-status"></p>
       </div>
     </div>
   </div>
 
+  <!-- MAIN SCREEN -->
   <div id="main-screen" class="screen">
-    <div class="main-content">
-      <div class="left-panel">
-        <div class="player-banner">
-          <div class="avatar" id="player-avatar"></div>
-          <div class="player-info">
-            <span id="player-username">Player</span>
-            <span class="player-status">Online</span>
+    <div class="app-layout">
+      <!-- LEFT SIDEBAR -->
+      <aside class="sidebar">
+        <div class="sidebar-logo">
+          <svg viewBox="0 0 28 28" width="28" height="28">
+            <defs><linearGradient id="sg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#a78bfa"/><stop offset="100%" style="stop-color:#4f46e5"/></linearGradient></defs>
+            <rect rx="8" width="28" height="28" fill="url(#sg)"/>
+            <text x="14" y="18" text-anchor="middle" fill="#fff" font-size="10" font-weight="700" font-family="sans-serif">FN</text>
+          </svg>
+          <span class="sidebar-brand">OGFN</span>
+        </div>
+
+        <nav class="sidebar-nav">
+          <button class="nav-btn active" data-tab="home">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+            <span>Home</span>
+          </button>
+          <button class="nav-btn" data-tab="download">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M5 20h14v-2H5v2zM19 9h-4V3H9v6H5l7 7 7-7z"/></svg>
+            <span>Library</span>
+          </button>
+          <button class="nav-btn" data-tab="settings">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.56-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6A3.6 3.6 0 1115.6 12 3.6 3.6 0 0112 15.6z"/></svg>
+            <span>Settings</span>
+          </button>
+        </nav>
+
+        <div class="sidebar-bottom">
+          <div class="user-card">
+            <div class="user-avatar" id="avatar-box">
+              <span id="avatar-letter">P</span>
+            </div>
+            <div class="user-meta">
+              <span class="user-name" id="player-username">Player</span>
+              <span class="user-status">Online</span>
+            </div>
+          </div>
+          <button id="btn-logout" class="btn-icon-sm" title="Sign Out">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>
+          </button>
+        </div>
+      </aside>
+
+      <!-- MAIN CONTENT -->
+      <main class="content-area">
+        <!-- HOME TAB -->
+        <div id="tab-home" class="tab active">
+          <div class="hero-banner">
+            <div class="hero-overlay"></div>
+            <div class="hero-inner">
+              <span class="hero-tag">SEASON 24</span>
+              <h1 class="hero-title">OG Fortnite</h1>
+              <p class="hero-desc">The original battle royale experience. Drop in, build up, and claim the Victory Royale.</p>
+              <div class="hero-actions">
+                <button id="btn-hero-play" class="btn-play-hero">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                  PLAY NOW
+                </button>
+                <button id="btn-hero-download" class="btn-outline-hero">Download</button>
+              </div>
+            </div>
+            <div class="hero-stats-bar">
+              <div class="hero-stat">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+                <span id="stat-players">0</span>
+                <span class="stat-label">Online Now</span>
+              </div>
+              <div class="hero-stat-divider"></div>
+              <div class="hero-stat">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
+                <span>24.20</span>
+                <span class="stat-label">Version</span>
+              </div>
+              <div class="hero-stat-divider"></div>
+              <div class="hero-stat">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
+                <span id="stat-uptime">--</span>
+                <span class="stat-label">Uptime</span>
+              </div>
+              <div class="hero-stat-divider"></div>
+              <div class="hero-stat">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+                <span id="stat-region">NAE</span>
+                <span class="stat-label">Region</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="section-header">
+            <h2>News & Updates</h2>
+          </div>
+          <div class="news-grid">
+            <div class="news-card">
+              <div class="news-img" style="background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%);">
+                <svg viewBox="0 0 24 24" width="40" height="40" fill="rgba(255,255,255,0.3)"><path d="M21 6H3c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-10 7H8v3H6v-3H3v-2h3V8h2v3h3v2zm4.5 2c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm4-3c-.83 0-1.5-.67-1.5-1.5S18.67 9 19.5 9s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
+              </div>
+              <div class="news-body">
+                <span class="news-date">Season 24</span>
+                <h3>OGFN is Live!</h3>
+                <p>Fortnite 24.20 private server is now online. Connect with friends and relive the classic experience.</p>
+              </div>
+            </div>
+            <div class="news-card">
+              <div class="news-img" style="background: linear-gradient(135deg, #2563eb 0%, #0891b2 100%);">
+                <svg viewBox="0 0 24 24" width="40" height="40" fill="rgba(255,255,255,0.3)"><path d="M17 20.41L18.41 19 15 15.59 13.59 17 7 10.41 8.41 9 14 14.59 21.59 7 23 8.41l-14 14z"/></svg>
+              </div>
+              <div class="news-body">
+                <span class="news-date">Update</span>
+                <h3>Matchmaking Active</h3>
+                <p>Solo, Duo, Squad, and LTM matchmaking are now fully operational. Jump in and find a match!</p>
+              </div>
+            </div>
+            <div class="news-card">
+              <div class="news-img" style="background: linear-gradient(135deg, #dc2626 0%, #f97316 100%);">
+                <svg viewBox="0 0 24 24" width="40" height="40" fill="rgba(255,255,255,0.3)"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+              </div>
+              <div class="news-body">
+                <span class="news-date">Community</span>
+                <h3>Join the Discord</h3>
+                <p>Connect with the community, find squadmates, and get the latest news and announcements.</p>
+              </div>
+            </div>
           </div>
         </div>
-        <button id="btn-logout" class="btn-logout">Logout</button>
-        <div class="server-selector">
-          <label>Server</label>
-          <select id="server-select">
-            <option value="online">Online</option>
-            <option value="offline">Offline/LAN</option>
-          </select>
-        </div>
-        <div class="version-info">
-          <span>Version:</span>
-          <span id="game-version">24.20</span>
-        </div>
-      </div>
 
-      <div class="center-panel">
-        <div class="news-panel">
-          <h2>OGFN 24.20 - Season 24</h2>
-          <div class="news-content">
-            <p>Welcome to the OG Fortnite experience!</p>
-            <p>Season 24 brings back the classic battle royale gameplay.</p>
-            <ul>
-              <li>Classic weapons and items</li>
-              <li>Original map locations</li>
-              <li>OG building mechanics</li>
-            </ul>
+        <!-- LIBRARY / DOWNLOAD TAB -->
+        <div id="tab-download" class="tab">
+          <div class="section-header">
+            <h2>Game Library</h2>
+          </div>
+
+          <div class="game-card-large">
+            <div class="game-card-bg">
+              <div class="game-card-overlay"></div>
+            </div>
+            <div class="game-card-content">
+              <div class="game-info">
+                <div class="game-badge">INSTALLED</div>
+                <h2 class="game-title">Fortnite</h2>
+                <p class="game-version">Version 24.20 &middot; OG Season</p>
+                <p class="game-desc">The classic Fortnite experience with OG weapons, map, and building mechanics.</p>
+              </div>
+              <div class="game-actions">
+                <!-- NOT INSTALLED STATE -->
+                <div id="state-not-installed" class="dl-state">
+                  <div class="dl-info-row">
+                    <div class="dl-info-item">
+                      <span class="dl-info-label">Size</span>
+                      <span class="dl-info-value">~4.5 GB</span>
+                    </div>
+                    <div class="dl-info-item">
+                      <span class="dl-info-label">Install To</span>
+                      <span class="dl-info-value" id="dl-install-path">Not selected</span>
+                    </div>
+                  </div>
+                  <button id="btn-install" class="btn-install">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+                    Install
+                  </button>
+                </div>
+
+                <!-- DOWNLOADING STATE -->
+                <div id="state-downloading" class="dl-state" style="display:none">
+                  <div class="dl-progress-wrap">
+                    <div class="dl-progress-header">
+                      <span id="dl-status-text">Downloading...</span>
+                      <span id="dl-percent">0%</span>
+                    </div>
+                    <div class="dl-progress-track">
+                      <div class="dl-progress-bar" id="dl-progress-bar"></div>
+                    </div>
+                    <div class="dl-progress-footer">
+                      <span id="dl-speed">--</span>
+                      <span id="dl-eta">Calculating...</span>
+                    </div>
+                  </div>
+                  <button id="btn-cancel-dl" class="btn-cancel">Cancel</button>
+                </div>
+
+                <!-- INSTALLED STATE -->
+                <div id="state-installed" class="dl-state" style="display:none">
+                  <div class="installed-check">
+                    <svg viewBox="0 0 24 24" width="40" height="40" fill="#22c55e"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                    <span>Ready to Play</span>
+                  </div>
+                  <button id="btn-reinstall" class="btn-reinstall">Reinstall</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="dl-settings-row">
+            <div class="dl-setting">
+              <label>Install Directory</label>
+              <div class="dl-setting-row">
+                <input type="text" id="input-install-dir" class="input-dark" placeholder="Select install folder..." readonly />
+                <button id="btn-browse-dir" class="btn-secondary-sm">Browse</button>
+              </div>
+            </div>
+            <div class="dl-setting">
+              <label>Download URL</label>
+              <div class="dl-setting-row">
+                <input type="text" id="input-download-url" class="input-dark" placeholder="https://..." />
+                <button id="btn-save-url" class="btn-secondary-sm">Save</button>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div class="right-panel">
-        <button id="btn-settings" class="btn-icon" title="Settings">⚙</button>
-      </div>
+        <!-- SETTINGS TAB -->
+        <div id="tab-settings" class="tab">
+          <div class="section-header">
+            <h2>Settings</h2>
+          </div>
+
+          <div class="settings-panel">
+            <div class="settings-section">
+              <h3 class="settings-section-title">Server</h3>
+              <div class="setting-row">
+                <div class="setting-label">
+                  <span class="setting-name">Server Address</span>
+                  <span class="setting-desc">The server to connect to</span>
+                </div>
+                <div class="setting-control">
+                  <input type="text" id="server-address" class="input-dark" placeholder="ogfn-server.onrender.com" />
+                  <button id="btn-save-address" class="btn-secondary-sm">Save</button>
+                </div>
+              </div>
+              <div class="setting-row">
+                <div class="setting-label">
+                  <span class="setting-name">Game Version</span>
+                  <span class="setting-desc">Current client version</span>
+                </div>
+                <span class="setting-value" id="game-version">24.20</span>
+              </div>
+            </div>
+
+            <div class="settings-section">
+              <h3 class="settings-section-title">About</h3>
+              <div class="setting-row">
+                <span class="setting-name">OGFN Launcher</span>
+                <span class="setting-value">v1.0.0</span>
+              </div>
+              <div class="setting-row">
+                <span class="setting-name">GitHub</span>
+                <a href="#" class="setting-link" id="link-github">iamunknown177/ogfn</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
     </div>
 
-    <div class="play-area">
-      <div class="server-address-row">
-        <label>Server Address</label>
-        <input type="text" id="server-address" placeholder="http://localhost:8080" />
-        <button id="btn-save-address" class="btn-save">Save</button>
+    <!-- BOTTOM STATUS BAR -->
+    <div class="status-bar">
+      <div class="status-left">
+        <span class="status-dot" id="status-dot"></span>
+        <span id="status-text">Connecting...</span>
       </div>
-      <button id="btn-play" class="btn-play">PLAY</button>
+      <div class="status-center">
+        <span id="status-players-bar" class="status-bar-players"></span>
+      </div>
+      <div class="status-right">
+        <span class="status-version">v24.20</span>
+      </div>
     </div>
   </div>
 

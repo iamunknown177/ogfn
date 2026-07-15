@@ -12,20 +12,22 @@ interface LauncherSettings {
   token: string | null;
   accountId: string | null;
   authPort: number;
+  downloadUrl: string;
 }
 
 const defaultSettings: LauncherSettings = {
   username: '',
   serverType: 'online',
-  gamePath: 'C:\\Program Files\\Epic Games\\Fortnite\\FortniteGame\\Binaries\\Win64\\FortniteClient-Win64-Shipping.exe',
+  gamePath: '',
   version: '24.20',
-  serverAddress: 'localhost',
-  serverPort: 8080,
+  serverAddress: 'ogfn-server.onrender.com',
+  serverPort: 443,
   proxyPort: 3000,
   theme: 'dark',
   token: null,
   accountId: null,
-  authPort: 3001
+  authPort: 3001,
+  downloadUrl: ''
 };
 
 export class LauncherConfig {

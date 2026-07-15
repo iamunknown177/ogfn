@@ -1,56 +1,125 @@
 // @ts-nocheck
 
-const loginScreen = document.getElementById('login-screen') as HTMLElement;
-const mainScreen = document.getElementById('main-screen') as HTMLElement;
-const discordLoginBtn = document.getElementById('btn-discord-login') as HTMLButtonElement;
-const loginStatus = document.getElementById('login-status') as HTMLElement;
-const playerUsername = document.getElementById('player-username') as HTMLElement;
-const playerAvatar = document.getElementById('player-avatar') as HTMLDivElement;
-const logoutBtn = document.getElementById('btn-logout') as HTMLButtonElement;
-const serverSelect = document.getElementById('server-select') as HTMLSelectElement;
-const gameVersion = document.getElementById('game-version') as HTMLElement;
-const playBtn = document.getElementById('btn-play') as HTMLButtonElement;
-const settingsBtn = document.getElementById('btn-settings') as HTMLButtonElement;
-const minimizeBtn = document.getElementById('btn-minimize') as HTMLButtonElement;
-const closeBtn = document.getElementById('btn-close') as HTMLButtonElement;
-const serverAddressInput = document.getElementById('server-address') as HTMLInputElement;
-const saveAddressBtn = document.getElementById('btn-save-address') as HTMLButtonElement;
+const loginScreen = document.getElementById('login-screen');
+const mainScreen = document.getElementById('main-screen');
+const discordLoginBtn = document.getElementById('btn-discord-login');
+const loginStatus = document.getElementById('login-status');
+const playerUsername = document.getElementById('player-username');
+const avatarLetter = document.getElementById('avatar-letter');
+const logoutBtn = document.getElementById('btn-logout');
+const minimizeBtn = document.getElementById('btn-minimize');
+const closeBtn = document.getElementById('btn-close');
+const serverAddressInput = document.getElementById('server-address');
+const saveAddressBtn = document.getElementById('btn-save-address');
+const gameVersion = document.getElementById('game-version');
+const heroPlayBtn = document.getElementById('btn-hero-play');
+const heroDownloadBtn = document.getElementById('btn-hero-download');
+const statusDot = document.getElementById('status-dot');
+const statusText = document.getElementById('status-text');
+const statusPlayersBar = document.getElementById('status-players-bar');
+const statPlayers = document.getElementById('stat-players');
+const statUptime = document.getElementById('stat-uptime');
+const linkGithub = document.getElementById('link-github');
 
-function showScreen(screen: 'login' | 'main'): void {
+const btnInstall = document.getElementById('btn-install');
+const btnCancelDl = document.getElementById('btn-cancel-dl');
+const btnBrowseDir = document.getElementById('btn-browse-dir');
+const btnReinstall = document.getElementById('btn-reinstall');
+const btnSaveUrl = document.getElementById('btn-save-url');
+const inputInstallDir = document.getElementById('input-install-dir');
+const inputDownloadUrl = document.getElementById('input-download-url');
+const dlInstallPath = document.getElementById('dl-install-path');
+const stateNotInstalled = document.getElementById('state-not-installed');
+const stateDownloading = document.getElementById('state-downloading');
+const stateInstalled = document.getElementById('state-installed');
+const dlProgressFill = document.getElementById('dl-progress-bar');
+const dlPercent = document.getElementById('dl-percent');
+const dlStatusText = document.getElementById('dl-status-text');
+const dlSpeed = document.getElementById('dl-speed');
+const dlEta = document.getElementById('dl-eta');
+
+let playerPollInterval = null;
+
+function showScreen(screen) {
   loginScreen.classList.remove('active');
   mainScreen.classList.remove('active');
+  if (screen === 'login') loginScreen.classList.add('active');
+  else mainScreen.classList.add('active');
+}
 
-  if (screen === 'login') {
-    loginScreen.classList.add('active');
+function switchTab(tab) {
+  document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+  document.querySelector('[data-tab="' + tab + '"]')?.classList.add('active');
+  document.getElementById('tab-' + tab)?.classList.add('active');
+}
+
+function formatBytes(b) {
+  if (b < 1024) return b + ' B';
+  if (b < 1048576) return (b / 1024).toFixed(1) + ' KB';
+  if (b < 1073741824) return (b / 1048576).toFixed(1) + ' MB';
+  return (b / 1073741824).toFixed(2) + ' GB';
+}
+
+function formatSpeed(bps) {
+  if (bps < 1048576) return (bps / 1024).toFixed(0) + ' KB/s';
+  return (bps / 1048576).toFixed(1) + ' MB/s';
+}
+
+function formatETA(s) {
+  if (s < 60) return Math.ceil(s) + 's';
+  if (s < 3600) return Math.floor(s / 60) + 'm ' + Math.ceil(s % 60) + 's';
+  return Math.floor(s / 3600) + 'h ' + Math.floor((s % 3600) / 60) + 'm';
+}
+
+function formatUptime(seconds) {
+  const d = Math.floor(seconds / 86400);
+  const h = Math.floor((seconds % 86400) / 3600);
+  if (d > 0) return d + 'd ' + h + 'h';
+  const m = Math.floor((seconds % 3600) / 60);
+  return h + 'h ' + m + 'm';
+}
+
+function setDownloadState(state) {
+  stateNotInstalled.style.display = state === 'not_installed' ? 'flex' : 'none';
+  stateDownloading.style.display = state === 'downloading' ? 'flex' : 'none';
+  stateInstalled.style.display = state === 'installed' ? 'flex' : 'none';
+
+  const badge = document.querySelector('.game-badge');
+  if (state === 'installed') {
+    badge.textContent = 'INSTALLED';
+    badge.style.color = '#22c55e';
+    badge.style.borderColor = 'rgba(34,197,94,0.2)';
+  } else if (state === 'downloading') {
+    badge.textContent = 'DOWNLOADING';
+    badge.style.color = '#f97316';
+    badge.style.borderColor = 'rgba(249,115,22,0.2)';
   } else {
-    mainScreen.classList.add('active');
+    badge.textContent = 'NOT INSTALLED';
+    badge.style.color = '#ef4444';
+    badge.style.borderColor = 'rgba(239,68,68,0.2)';
   }
 }
 
-async function handleDiscordLogin(): Promise<void> {
+// Auth
+async function handleDiscordLogin() {
   discordLoginBtn.disabled = true;
-  discordLoginBtn.textContent = 'Connecting...';
-  loginStatus.textContent = 'Opening Discord in your browser...';
-  loginStatus.className = 'status-text';
-
+  discordLoginBtn.querySelector('span').textContent = 'Connecting...';
+  loginStatus.textContent = 'Opening Discord...';
+  loginStatus.className = 'login-status';
   try {
-    const result = await window.electronAPI.discordLogin();
-
-    if (!result.success) {
-      loginStatus.textContent = result.error || 'Failed to start login';
-      loginStatus.className = 'status-text error';
+    const r = await window.electronAPI.discordLogin();
+    if (!r.success) {
+      loginStatus.textContent = r.error || 'Failed';
+      loginStatus.className = 'login-status error';
       discordLoginBtn.disabled = false;
-      discordLoginBtn.innerHTML = `
-        <svg class="discord-icon" viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
-          <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
-        </svg>
-        Login with Discord
-      `;
+      discordLoginBtn.querySelector('span').textContent = 'Sign in with Discord';
     }
-  } catch (error) {
+  } catch {
     loginStatus.textContent = 'Connection error';
-    loginStatus.className = 'status-text error';
+    loginStatus.className = 'login-status error';
     discordLoginBtn.disabled = false;
+    discordLoginBtn.querySelector('span').textContent = 'Sign in with Discord';
   }
 }
 
@@ -59,107 +128,216 @@ window.electronAPI.onDiscordAuthComplete(async (data) => {
     loginStatus.textContent = '';
     showScreen('main');
     await loadProfile();
+    startPlayerPolling();
   } else {
     loginStatus.textContent = 'Authentication failed';
-    loginStatus.className = 'status-text error';
+    loginStatus.className = 'login-status error';
     discordLoginBtn.disabled = false;
+    discordLoginBtn.querySelector('span').textContent = 'Sign in with Discord';
   }
 });
 
-async function loadProfile(): Promise<void> {
+async function loadProfile() {
   try {
-    const profile = await window.electronAPI.getProfile();
-    playerUsername.textContent = profile.username;
-  } catch (error) {
-    console.error('Failed to load profile:', error);
+    const p = await window.electronAPI.getProfile();
+    playerUsername.textContent = p.username;
+    avatarLetter.textContent = p.username.charAt(0).toUpperCase();
+  } catch {}
+}
+
+async function checkExistingAuth() {
+  try {
+    const r = await window.electronAPI.checkAuth();
+    if (r.authenticated && r.account) {
+      showScreen('main');
+      playerUsername.textContent = r.account.username;
+      avatarLetter.textContent = r.account.username.charAt(0).toUpperCase();
+      startPlayerPolling();
+    }
+  } catch {}
+}
+
+// Player count polling
+async function fetchServerStatus() {
+  try {
+    const settings = await window.electronAPI.getSettings();
+    const host = settings.serverAddress || 'ogfn-server.onrender.com';
+    const data = await window.electronAPI.httpGet(host + '/api/status');
+    if (data && data.status === 'online') {
+      statusDot.className = 'status-dot online';
+      statusText.textContent = 'Connected to ' + host;
+      const p = data.players || 0;
+      statPlayers.textContent = p.toString();
+      statusPlayersBar.textContent = p + ' player' + (p !== 1 ? 's' : '') + ' online';
+      statUptime.textContent = formatUptime(data.uptime || 0);
+    } else {
+      statusDot.className = 'status-dot offline';
+      statusText.textContent = 'Server offline';
+      statPlayers.textContent = '0';
+      statusPlayersBar.textContent = '';
+      statUptime.textContent = '--';
+    }
+  } catch {
+    statusDot.className = 'status-dot offline';
+    statusText.textContent = 'Cannot reach server';
+    statPlayers.textContent = '0';
+    statusPlayersBar.textContent = '';
   }
 }
 
-async function handleLogout(): Promise<void> {
+function startPlayerPolling() {
+  fetchServerStatus();
+  if (playerPollInterval) clearInterval(playerPollInterval);
+  playerPollInterval = setInterval(fetchServerStatus, 15000);
+}
+
+// Download
+async function checkGameState() {
+  try {
+    const s = await window.electronAPI.getDownloadState();
+    if (s && s.installed) {
+      setDownloadState('installed');
+      dlInstallPath.textContent = s.path || '--';
+      inputInstallDir.value = s.path || '';
+    } else {
+      setDownloadState('not_installed');
+    }
+  } catch {
+    setDownloadState('not_installed');
+  }
+
+  try {
+    const settings = await window.electronAPI.getSettings();
+    if (settings.downloadUrl) {
+      inputDownloadUrl.value = settings.downloadUrl;
+    }
+  } catch {}
+}
+
+async function handleInstall() {
+  let installPath = inputInstallDir.value;
+  if (!installPath) {
+    installPath = await window.electronAPI.selectFolder();
+    if (!installPath) return;
+    inputInstallDir.value = installPath;
+    dlInstallPath.textContent = installPath;
+  }
+
+  const downloadUrl = inputDownloadUrl.value.trim();
+  if (!downloadUrl) {
+    dlInstallPath.textContent = 'Set a download URL first!';
+    return;
+  }
+
+  setDownloadState('downloading');
+  const result = await window.electronAPI.startDownload(installPath);
+  if (!result.success) {
+    setDownloadState('not_installed');
+    dlStatusText.textContent = 'Error: ' + (result.error || 'Failed');
+  }
+}
+
+window.electronAPI.onDownloadProgress((data) => {
+  dlProgressFill.style.width = data.percent + '%';
+  dlPercent.textContent = Math.round(data.percent) + '%';
+  dlStatusText.textContent = data.status || 'Downloading...';
+  if (data.speed) dlSpeed.textContent = formatSpeed(data.speed);
+  if (data.eta != null) dlEta.textContent = formatETA(data.eta);
+});
+
+window.electronAPI.onDownloadComplete((data) => {
+  setDownloadState('installed');
+  dlInstallPath.textContent = data.path || '--';
+  inputInstallDir.value = data.path || '';
+});
+
+window.electronAPI.onDownloadError((data) => {
+  setDownloadState('not_installed');
+  dlStatusText.textContent = 'Error: ' + (data.error || 'Failed');
+});
+
+async function handleCancel() {
+  await window.electronAPI.cancelDownload();
+  setDownloadState('not_installed');
+}
+
+async function handleLaunchGame() {
+  const s = await window.electronAPI.getDownloadState();
+  if (!s || !s.installed) {
+    switchTab('download');
+    return;
+  }
+  heroPlayBtn.disabled = true;
+  heroPlayBtn.querySelector('span').textContent = 'LAUNCHING...';
+  try {
+    await window.electronAPI.launchGame();
+  } catch {}
+  setTimeout(() => {
+    heroPlayBtn.disabled = false;
+    heroPlayBtn.querySelector('svg').outerHTML = '<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
+    heroPlayBtn.querySelector('span') && (heroPlayBtn.childNodes[1].textContent = ' PLAY NOW');
+  }, 3000);
+}
+
+async function handleLogout() {
   await window.electronAPI.logout();
   showScreen('login');
   discordLoginBtn.disabled = false;
+  discordLoginBtn.querySelector('span').textContent = 'Sign in with Discord';
   loginStatus.textContent = '';
+  if (playerPollInterval) clearInterval(playerPollInterval);
 }
 
-async function handleLaunchGame(): Promise<void> {
-  try {
-    playBtn.textContent = 'LAUNCHING...';
-    playBtn.disabled = true;
-
-    const result = await window.electronAPI.launchGame();
-
-    if (result.success) {
-      console.log('Game launching...');
-    }
-  } catch (error) {
-    console.error('Failed to launch game:', error);
-  } finally {
-    setTimeout(() => {
-      playBtn.textContent = 'PLAY';
-      playBtn.disabled = false;
-    }, 2000);
-  }
-}
-
-async function handleServerSelect(): Promise<void> {
-  const serverType = serverSelect.value;
-  try {
-    await window.electronAPI.selectServer(serverType);
-  } catch (error) {
-    console.error('Failed to select server:', error);
-  }
-}
-
-async function handleSaveAddress(): Promise<void> {
-  const address = serverAddressInput.value.trim();
-  if (!address) return;
-  await window.electronAPI.saveServerAddress(address);
-  saveAddressBtn.textContent = 'Saved!';
-  setTimeout(() => { saveAddressBtn.textContent = 'Save'; }, 1500);
-}
-
-async function checkExistingAuth(): Promise<void> {
-  try {
-    const result = await window.electronAPI.checkAuth();
-    if (result.authenticated && result.account) {
-      showScreen('main');
-      playerUsername.textContent = result.account.username;
-    }
-  } catch (error) {
-    console.error('Auth check failed:', error);
-  }
-}
-
-async function loadSettings(): Promise<void> {
-  try {
-    const settings = await window.electronAPI.getSettings();
-    if (settings.serverType) {
-      serverSelect.value = settings.serverType;
-    }
-    if (settings.version) {
-      gameVersion.textContent = settings.version;
-    }
-    if (settings.serverAddress) {
-      serverAddressInput.value = `http://${settings.serverAddress}:${settings.serverPort}`;
-    } else {
-      serverAddressInput.value = 'http://localhost:8080';
-    }
-  } catch (error) {
-    console.error('Failed to load settings:', error);
-  }
-}
-
+// Events
 discordLoginBtn.addEventListener('click', handleDiscordLogin);
 logoutBtn.addEventListener('click', handleLogout);
-playBtn.addEventListener('click', handleLaunchGame);
-serverSelect.addEventListener('change', handleServerSelect);
-saveAddressBtn.addEventListener('click', handleSaveAddress);
-settingsBtn.addEventListener('click', () => {
-  console.log('Settings clicked');
+heroPlayBtn.addEventListener('click', handleLaunchGame);
+heroDownloadBtn.addEventListener('click', () => switchTab('download'));
+btnInstall.addEventListener('click', handleInstall);
+btnCancelDl.addEventListener('click', handleCancel);
+btnBrowseDir.addEventListener('click', async () => {
+  const p = await window.electronAPI.selectFolder();
+  if (p) {
+    inputInstallDir.value = p;
+    dlInstallPath.textContent = p;
+  }
+});
+btnReinstall.addEventListener('click', () => setDownloadState('not_installed'));
+btnSaveUrl.addEventListener('click', async () => {
+  const url = inputDownloadUrl.value.trim();
+  if (!url) return;
+  const settings = await window.electronAPI.getSettings();
+  await window.electronAPI.saveServerAddress(settings.serverAddress || 'ogfn-server.onrender.com');
+  await window.electronAPI.saveDownloadUrl(url);
+  btnSaveUrl.textContent = 'Saved!';
+  setTimeout(() => { btnSaveUrl.textContent = 'Save'; }, 1500);
+});
+saveAddressBtn.addEventListener('click', async () => {
+  const addr = serverAddressInput.value.trim();
+  if (!addr) return;
+  await window.electronAPI.saveServerAddress(addr);
+  saveAddressBtn.textContent = 'Saved!';
+  setTimeout(() => { saveAddressBtn.textContent = 'Save'; }, 1500);
+  fetchServerStatus();
 });
 minimizeBtn.addEventListener('click', () => window.electronAPI.minimize());
 closeBtn.addEventListener('click', () => window.electronAPI.close());
+linkGithub?.addEventListener('click', (e) => { e.preventDefault(); });
+
+document.querySelectorAll('.nav-btn').forEach(btn => {
+  btn.addEventListener('click', () => switchTab(btn.getAttribute('data-tab')));
+});
+
+async function loadSettings() {
+  try {
+    const s = await window.electronAPI.getSettings();
+    if (s.version) gameVersion.textContent = s.version;
+    const host = (s.serverAddress || '').replace(/^https?:\/\//, '').replace(/\/+$/, '');
+    serverAddressInput.value = host || 'ogfn-server.onrender.com';
+    if (s.gamePath) inputInstallDir.value = s.gamePath;
+  } catch {}
+}
 
 loadSettings();
 checkExistingAuth();
+checkGameState();
