@@ -8,7 +8,7 @@ export const config = {
   maxPlayers: parseInt(process.env.MAX_PLAYERS || "100", 10),
   discord: {
     clientId: process.env.DISCORD_CLIENT_ID || "1515499233258639460",
-    clientSecret: process.env.DISCORD_CLIENT_SECRET || "",
+    clientSecret: process.env.DISCORD_CLIENT_SECRET || "99eSafiXD94qBq-Bwb-genPD9SQofFJY",
     redirectUri: process.env.DISCORD_REDIRECT_URI || "http://localhost:8080/auth/discord/callback",
   },
   jwtSecret: process.env.JWT_SECRET || "ogfn_secret_change_me",
