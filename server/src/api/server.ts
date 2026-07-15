@@ -150,6 +150,15 @@ export async function startApiServer(port: number): Promise<void> {
     res.json({ name: "OGFN 24.20", status: "running" });
   });
 
+  app.get("/debug/discord", (_req, res) => {
+    const hasSecret = config.discord.clientSecret.length > 0;
+    res.json({
+      clientId: config.discord.clientId,
+      hasSecret,
+      redirectUri: config.discord.redirectUri,
+    });
+  });
+
   const server = http.createServer(app);
   setupWebSocket(server);
 
