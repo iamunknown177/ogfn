@@ -31,7 +31,7 @@ function setupMatchmakerRoutes(app: express.Application): void {
     const maxPlayers =
       sessionMode === "solo" ? 100 : sessionMode === "duo" ? 50 : sessionMode === "squad" ? 25 : 50;
 
-    const session = new MatchmakingSession(sessionMode, region || "NAE", maxPlayers);
+    const session = new MatchmakingSession(sessionMode, region || "EU", maxPlayers);
     if (accountId) session.addPlayer(accountId);
     sessions.set(session.id, session);
 
@@ -155,7 +155,7 @@ export async function startApiServer(port: number): Promise<void> {
       players: connectedPlayers.size,
       maxPlayers: config.maxPlayers,
       uptime: process.uptime(),
-      region: "NAE",
+      region: "EU",
       season: 24,
     });
   });
