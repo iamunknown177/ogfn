@@ -4,6 +4,7 @@ import { WebSocketServer, WebSocket } from "ws";
 import { profileRouter } from "./routes/profile";
 import { catalogRouter } from "./routes/catalog";
 import { authRouter } from "../auth";
+import { config } from "../config";
 import { MatchmakingSession } from "../matchmaker/session";
 
 const sessions = new Map<string, MatchmakingSession>();
