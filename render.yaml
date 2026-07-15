@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: ogfn-server
+    runtime: node
+    plan: free
+    buildCommand: npm install --workspace=shared --workspace=server && cd shared && npm run build && cd ../server && npm run build
+    startCommand: cd server && node dist/index.js
+    envVars:
+      - key: PORT
+        value: 8080
+      - key: DISCORD_CLIENT_ID
+        value: 1515499233258639460
+      - key: DISCORD_CLIENT_SECRET
+        sync: false
+      - key: DISCORD_REDIRECT_URI
+        value: https://ogfn-server.onrender.com/auth/discord/callback
+      - key: JWT_SECRET
+        generateValue: true
+      - key: SERVER_NAME
+        value: OGFN 24.20
+      - key: SERVER_VERSION
+        value: "24.20"

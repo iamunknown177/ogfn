@@ -1,0 +1,42 @@
+{
+  "name": "ogfn-launcher",
+  "version": "1.0.0",
+  "description": "OG Fortnite 24.20 Launcher",
+  "main": "dist/main.js",
+  "scripts": {
+    "build": "tsc && npx tsc src/renderer/app.ts --outDir src/renderer --target ES2020 --lib ES2020,DOM --module none --skipLibCheck --isolatedModules false --noEmit false --declaration false",
+    "start": "electron dist/main.js",
+    "dev": "concurrently \"tsc --watch\" \"electron dist/main.js\"",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder"
+  },
+  "dependencies": {
+    "electron-store": "^8.1.0",
+    "express": "^4.18.2",
+    "node-fetch": "^2.7.0"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.10.0",
+    "@types/node-fetch": "^2.6.9",
+    "concurrently": "^8.2.2",
+    "electron": "^28.0.0",
+    "electron-builder": "^24.9.1",
+    "typescript": "^5.3.2"
+  },
+  "build": {
+    "appId": "com.ogfn.launcher",
+    "productName": "OGFN Launcher",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "src/renderer/**/*"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "assets/icon.png"
+    }
+  }
+}

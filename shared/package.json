@@ -1,0 +1,9 @@
+{
+  "name": "@ogfn/shared",
+  "version": "24.20.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc"
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "name": "ogfn",
+  "version": "24.20.0",
+  "description": "OG Fortnite 24.20 Private Server & Launcher",
+  "private": true,
+  "workspaces": [
+    "shared",
+    "server",
+    "launcher"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces",
+    "server": "npm run start --workspace=server",
+    "launcher": "npm run start --workspace=launcher",
+    "dev:server": "npm run dev --workspace=server",
+    "dev:launcher": "npm run dev --workspace=launcher"
+  }
+}
