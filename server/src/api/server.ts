@@ -93,7 +93,7 @@ function setupWebSocket(server: http.Server): void {
     connectedPlayers.set(playerId, ws);
     console.log(`[WS] Player connected: ${playerId} (total: ${connectedPlayers.size})`);
 
-    ws.send(JSON.stringify({ type: "welcome", playerId, message: "Connected to OGFN 24.20" }));
+    ws.send(JSON.stringify({ type: "welcome", playerId, message: "Connected to OGFN 29.30" }));
 
     ws.on("message", (data) => {
       try {
@@ -144,7 +144,7 @@ export async function startApiServer(port: number): Promise<void> {
   setupMatchmakerRoutes(app);
 
   app.get("/health", (_req, res) => {
-    res.json({ status: "ok", version: "24.20", players: connectedPlayers.size });
+    res.json({ status: "ok", version: "29.30", players: connectedPlayers.size });
   });
 
   app.get("/api/status", (_req, res) => {
@@ -161,7 +161,7 @@ export async function startApiServer(port: number): Promise<void> {
   });
 
   app.get("/", (_req, res) => {
-    res.json({ name: "OGFN 24.20", status: "running" });
+    res.json({ name: "OGFN 29.30", status: "running" });
   });
 
   const server = http.createServer(app);

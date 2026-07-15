@@ -15,7 +15,7 @@ export function startWebSocketServer(port: number): void {
       JSON.stringify({
         type: "welcome",
         playerId,
-        message: "Connected to OGFN 24.20 WebSocket server",
+        message: "Connected to OGFN 29.30 WebSocket server",
       })
     );
 

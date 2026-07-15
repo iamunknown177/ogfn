@@ -19,7 +19,7 @@ const defaultSettings: LauncherSettings = {
   username: '',
   serverType: 'online',
   gamePath: '',
-  version: '24.20',
+  version: '29.30',
   serverAddress: 'ogfn-server.onrender.com',
   serverPort: 443,
   proxyPort: 3000,

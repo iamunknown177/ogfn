@@ -16,7 +16,7 @@ let currentDownload: { cancelled: boolean; filePath?: string } | null = null;
 const DISCORD_CLIENT_ID = '1515499233258639460';
 const REDIRECT_URI = 'http://localhost:3001/auth/callback';
 
-const GAME_DOWNLOAD_URL = 'https://github.com/iamunknown177/ogfn/releases/download/client/Fortnite-24.20.zip';
+const GAME_DOWNLOAD_URL = 'https://fortforge.co.uk/builds/38052f13-5afc-429a-a361-7a559285b5b4';
 
 function getServerBase(): string {
   const s = config.getSettings();
@@ -440,7 +440,7 @@ ipcMain.handle('start-download', async (_event, installPath: string) => {
   try {
     const settings = config.getSettings();
     const downloadUrl = settings.downloadUrl || GAME_DOWNLOAD_URL;
-    const zipPath = path.join(installPath, 'Fortnite-24.20.zip');
+    const zipPath = path.join(installPath, 'Fortnite-29.30.zip');
     const extractedMarker = path.join(installPath, '.ogfn-installed');
 
     if (!fs.existsSync(installPath)) {
@@ -462,7 +462,7 @@ ipcMain.handle('start-download', async (_event, installPath: string) => {
       if (mainWindow) {
         mainWindow.webContents.send('download-progress', {
           ...progress,
-          status: 'Downloading Fortnite 24.20...'
+          status: 'Downloading Fortnite 29.30...'
         });
       }
     });

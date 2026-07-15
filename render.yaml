@@ -17,6 +17,6 @@ services:
       - key: JWT_SECRET
         generateValue: true
       - key: SERVER_NAME
-        value: OGFN 24.20
+        value: OGFN 29.30
       - key: SERVER_VERSION
-        value: "24.20"
+        value: "29.30"
