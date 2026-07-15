@@ -1,4 +1,5 @@
 import { Router, Request, Response } from "express";
+import * as https from "https";
 import { config } from "../config";
 import {
   findOrCreateAccount,
@@ -22,6 +23,55 @@ interface DiscordUserResponse {
   email?: string;
 }
 
+function httpsPost(targetUrl: string, body: string, headers: Record<string, string>): Promise<any> {
+  return new Promise((resolve, reject) => {
+    const parsed = new URL(targetUrl);
+    const req = https.request(
+      {
+        hostname: parsed.hostname,
+        path: parsed.pathname,
+        method: "POST",
+        headers: { ...headers, "Content-Length": Buffer.byteLength(body) },
+      },
+      (res) => {
+        let data = "";
+        res.on("data", (c) => (data += c));
+        res.on("end", () => {
+          try { resolve({ status: res.statusCode, data: JSON.parse(data) }); }
+          catch { resolve({ status: res.statusCode, data }); }
+        });
+      }
+    );
+    req.on("error", reject);
+    req.write(body);
+    req.end();
+  });
+}
+
+function httpsGet(targetUrl: string, headers: Record<string, string>): Promise<any> {
+  return new Promise((resolve, reject) => {
+    const parsed = new URL(targetUrl);
+    const req = https.request(
+      {
+        hostname: parsed.hostname,
+        path: parsed.pathname,
+        method: "GET",
+        headers,
+      },
+      (res) => {
+        let data = "";
+        res.on("data", (c) => (data += c));
+        res.on("end", () => {
+          try { resolve({ status: res.statusCode, data: JSON.parse(data) }); }
+          catch { resolve({ status: res.statusCode, data }); }
+        });
+      }
+    );
+    req.on("error", reject);
+    req.end();
+  });
+}
+
 async function exchangeCode(code: string, redirectUri?: string): Promise<DiscordTokenResponse> {
   const body = new URLSearchParams({
     client_id: config.discord.clientId,
@@ -31,31 +81,33 @@ async function exchangeCode(code: string, redirectUri?: string): Promise<Discord
     redirect_uri: redirectUri || config.discord.redirectUri,
   });
 
-  const res = await fetch("https://discord.com/api/oauth2/token", {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: body.toString(),
-  });
+  console.log(`[Auth] Exchanging code with Discord (redirectUri: ${redirectUri || config.discord.redirectUri})`);
 
-  if (!res.ok) {
-    throw new Error(`Discord token exchange failed: ${res.status}`);
+  const result = await httpsPost(
+    "https://discord.com/api/oauth2/token",
+    body.toString(),
+    { "Content-Type": "application/x-www-form-urlencoded" }
+  );
+
+  if (result.status !== 200) {
+    console.error(`[Auth] Discord token exchange failed: ${result.status}`, JSON.stringify(result.data));
+    throw new Error(`Discord token exchange failed: ${result.status}`);
   }
 
-  return res.json() as Promise<DiscordTokenResponse>;
+  return result.data as DiscordTokenResponse;
 }
 
-async function fetchDiscordUser(
-  accessToken: string
-): Promise<DiscordUserResponse> {
-  const res = await fetch("https://discord.com/api/users/@me", {
-    headers: { Authorization: `Bearer ${accessToken}` },
+async function fetchDiscordUser(accessToken: string): Promise<DiscordUserResponse> {
+  const result = await httpsGet("https://discord.com/api/users/@me", {
+    Authorization: `Bearer ${accessToken}`,
   });
 
-  if (!res.ok) {
-    throw new Error(`Discord user fetch failed: ${res.status}`);
+  if (result.status !== 200) {
+    console.error(`[Auth] Discord user fetch failed: ${result.status}`, JSON.stringify(result.data));
+    throw new Error(`Discord user fetch failed: ${result.status}`);
   }
 
-  return res.json() as Promise<DiscordUserResponse>;
+  return result.data as DiscordUserResponse;
 }
 
 export const authRouter = Router();
@@ -68,9 +120,7 @@ authRouter.get("/discord", (req: Request, res: Response) => {
     scope: "identify email",
   });
 
-  res.redirect(
-    `https://discord.com/oauth2/authorize?${params.toString()}`
-  );
+  res.redirect(`https://discord.com/oauth2/authorize?${params.toString()}`);
 });
 
 authRouter.get("/discord/callback", async (req: Request, res: Response) => {

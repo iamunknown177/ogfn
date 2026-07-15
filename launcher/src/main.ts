@@ -1,6 +1,7 @@
 import { app, BrowserWindow, ipcMain, shell } from 'electron';
 import * as path from 'path';
 import * as http from 'http';
+import * as https from 'https';
 import * as url from 'url';
 import { LauncherConfig } from './config';
 import { startProxy } from './proxy/server';
@@ -14,17 +15,22 @@ const REDIRECT_URI = 'http://localhost:3001/auth/callback';
 
 function getServerBase(): string {
   const s = config.getSettings();
-  return `http://${s.serverAddress}:${s.serverPort}`;
+  const host = s.serverAddress;
+  if (host === 'localhost' || host === '127.0.0.1') {
+    return `http://${host}:${s.serverPort}`;
+  }
+  return `https://${host}`;
 }
 
 function httpPost(targetUrl: string, body: object): Promise<any> {
   return new Promise((resolve, reject) => {
     const parsed = new URL(targetUrl);
     const data = JSON.stringify(body);
-    const req = http.request(
+    const mod = parsed.protocol === 'https:' ? https : http;
+    const req = mod.request(
       {
         hostname: parsed.hostname,
-        port: parsed.port,
+        port: parsed.port || (parsed.protocol === 'https:' ? 443 : 80),
         path: parsed.pathname,
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(data) },
@@ -46,10 +52,11 @@ function httpPost(targetUrl: string, body: object): Promise<any> {
 function httpGet(targetUrl: string, headers?: Record<string, string>): Promise<any> {
   return new Promise((resolve, reject) => {
     const parsed = new URL(targetUrl);
-    const req = http.request(
+    const mod = parsed.protocol === 'https:' ? https : http;
+    const req = mod.request(
       {
         hostname: parsed.hostname,
-        port: parsed.port,
+        port: parsed.port || (parsed.protocol === 'https:' ? 443 : 80),
         path: parsed.pathname + parsed.search,
         method: 'GET',
         headers,
@@ -70,7 +77,8 @@ function httpGet(targetUrl: string, headers?: Record<string, string>): Promise<a
 function httpPostRaw(targetUrl: string, body: string, headers?: Record<string, string>): Promise<any> {
   return new Promise((resolve, reject) => {
     const parsed = new URL(targetUrl);
-    const req = http.request(
+    const mod = parsed.protocol === 'https:' ? https : http;
+    const req = mod.request(
       {
         hostname: parsed.hostname,
         port: parsed.port,

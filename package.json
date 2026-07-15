@@ -14,5 +14,8 @@
     "launcher": "npm run start --workspace=launcher",
     "dev:server": "npm run dev --workspace=server",
     "dev:launcher": "npm run dev --workspace=launcher"
+  },
+  "dependencies": {
+    "7zip-bin": "^5.2.0"
   }
 }
