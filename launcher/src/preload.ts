@@ -31,6 +31,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   selectFolder: () =>
     ipcRenderer.invoke('select-folder'),
 
+  scanFolder: (folder: string) =>
+    ipcRenderer.invoke('scan-folder', folder),
+
   startDownload: (installPath: string) =>
     ipcRenderer.invoke('start-download', installPath),
 

@@ -217,15 +217,31 @@ async function checkGameState() {
 async function handleInstall() {
   let installPath = inputInstallDir.value;
   if (!installPath) {
-    installPath = await window.electronAPI.selectFolder();
-    if (!installPath) return;
-    inputInstallDir.value = installPath;
-    dlInstallPath.textContent = installPath;
+    const result = await window.electronAPI.selectFolder();
+    if (!result) return;
+    installPath = result.folder;
+    inputInstallDir.value = result.folder;
+    dlInstallPath.textContent = result.folder;
+    if (result.gameExe) {
+      // Game found in folder!
+      await window.electronAPI.saveServerAddress((await window.electronAPI.getSettings()).serverAddress || 'ogfn-server.onrender.com');
+      setDownloadState('installed');
+      dlInstallPath.textContent = result.gameExe;
+      return;
+    }
+  }
+
+  // Scan current folder for game exe
+  const scan = await window.electronAPI.scanFolder(installPath);
+  if (scan && scan.gameExe) {
+    setDownloadState('installed');
+    dlInstallPath.textContent = scan.gameExe;
+    return;
   }
 
   const downloadUrl = inputDownloadUrl.value.trim();
   if (!downloadUrl) {
-    dlInstallPath.textContent = 'Set a download URL first!';
+    dlInstallPath.textContent = 'Game not found. Set a download URL or pick the correct folder.';
     return;
   }
 
@@ -296,10 +312,14 @@ heroDownloadBtn.addEventListener('click', () => switchTab('download'));
 btnInstall.addEventListener('click', handleInstall);
 btnCancelDl.addEventListener('click', handleCancel);
 btnBrowseDir.addEventListener('click', async () => {
-  const p = await window.electronAPI.selectFolder();
-  if (p) {
-    inputInstallDir.value = p;
-    dlInstallPath.textContent = p;
+  const result = await window.electronAPI.selectFolder();
+  if (result) {
+    inputInstallDir.value = result.folder;
+    dlInstallPath.textContent = result.folder;
+    if (result.gameExe) {
+      setDownloadState('installed');
+      dlInstallPath.textContent = result.gameExe;
+    }
   }
 });
 btnReinstall.addEventListener('click', () => setDownloadState('not_installed'));

@@ -419,6 +419,11 @@ ipcMain.handle('save-server-address', async (_event, address: string) => {
   return { success: true };
 });
 
+ipcMain.handle('scan-folder', async (_event, folder: string) => {
+  const exe = findGameExe(folder);
+  return { gameExe: exe };
+});
+
 ipcMain.handle('save-download-url', async (_event, url: string) => {
   const settings = config.getSettings();
   settings.downloadUrl = url;
@@ -429,27 +434,69 @@ ipcMain.handle('save-download-url', async (_event, url: string) => {
 ipcMain.handle('select-folder', async () => {
   const result = await dialog.showOpenDialog(mainWindow!, {
     properties: ['openDirectory'],
-    title: 'Select Install Location',
-    defaultPath: path.join(app.getPath('home'), 'OGFN')
+    title: 'Select Fortnite 29.30 Folder',
+    defaultPath: path.join(app.getPath('home'), 'Fortnite')
   });
   if (result.canceled || !result.filePaths.length) return null;
-  return result.filePaths[0];
+  const folder = result.filePaths[0];
+  const exe = findGameExe(folder);
+  return { folder, gameExe: exe };
 });
+
+function findGameExe(dir: string): string | null {
+  const knownNames = [
+    'FortniteClient-Win64-Shipping.exe',
+    'FortniteClient-Win64-Shipping_BE.exe',
+    'FortniteClient.exe',
+  ];
+  // Check common locations first (up to 4 levels deep)
+  const searchDirs = [
+    dir,
+    path.join(dir, 'FortniteGame', 'Binaries', 'Win64'),
+    path.join(dir, 'Binaries', 'Win64'),
+  ];
+  for (const d of searchDirs) {
+    for (const name of knownNames) {
+      const full = path.join(d, name);
+      if (fs.existsSync(full)) return full;
+    }
+  }
+  // Deep scan up to 4 levels
+  function scan(currentDir: string, depth: number): string | null {
+    if (depth > 4) return null;
+    try {
+      const entries = fs.readdirSync(currentDir, { withFileTypes: true });
+      for (const entry of entries) {
+        if (entry.isFile() && knownNames.includes(entry.name)) {
+          return path.join(currentDir, entry.name);
+        }
+        if (entry.isDirectory() && !entry.name.startsWith('.') && entry.name !== 'node_modules') {
+          const found = scan(path.join(currentDir, entry.name), depth + 1);
+          if (found) return found;
+        }
+      }
+    } catch {}
+    return null;
+  }
+  return scan(dir, 0);
+}
 
 ipcMain.handle('start-download', async (_event, installPath: string) => {
   try {
     const settings = config.getSettings();
     const downloadUrl = settings.downloadUrl || GAME_DOWNLOAD_URL;
     const zipPath = path.join(installPath, 'Fortnite-29.30.zip');
-    const extractedMarker = path.join(installPath, '.ogfn-installed');
 
     if (!fs.existsSync(installPath)) {
       fs.mkdirSync(installPath, { recursive: true });
     }
 
-    if (fs.existsSync(extractedMarker)) {
+    // Check if game exe already exists
+    const existingExe = findGameExe(installPath);
+    if (existingExe) {
+      config.setSettings({ gamePath: existingExe });
       if (mainWindow) {
-        mainWindow.webContents.send('download-complete', { path: installPath });
+        mainWindow.webContents.send('download-complete', { path: existingExe });
       }
       return { success: true };
     }
@@ -478,21 +525,35 @@ ipcMain.handle('start-download', async (_event, installPath: string) => {
       const zip = new AdmZip(zipPath);
       zip.extractAllTo(installPath, true);
     } catch {
-      // If adm-zip not available, just leave the zip
+      // If extraction fails, the file might be an exe directly
+      try {
+        const ext = path.extname(zipPath).toLowerCase();
+        if (ext === '.exe') {
+          const exePath = path.join(installPath, 'FortniteClient-Win64-Shipping.exe');
+          fs.renameSync(zipPath, exePath);
+        }
+      } catch {}
     }
 
-    fs.writeFileSync(extractedMarker, Date.now().toString());
     try { fs.unlinkSync(zipPath); } catch {}
 
-    if (mainWindow) {
-      mainWindow.webContents.send('download-complete', { path: installPath });
+    // Scan for the game exe after extraction
+    const gameExe = findGameExe(installPath);
+
+    if (gameExe) {
+      config.setSettings({ gamePath: gameExe });
+      if (mainWindow) {
+        mainWindow.webContents.send('download-complete', { path: gameExe });
+      }
+      return { success: true };
+    } else {
+      // Downloaded but exe not found - mark folder anyway
+      config.setSettings({ gamePath: installPath });
+      if (mainWindow) {
+        mainWindow.webContents.send('download-complete', { path: installPath });
+      }
+      return { success: true };
     }
-
-    const dlSettings = config.getSettings();
-    dlSettings.gamePath = installPath;
-    config.setSettings(dlSettings);
-
-    return { success: true };
   } catch (err: any) {
     if (mainWindow) {
       mainWindow.webContents.send('download-error', { error: err?.message || 'Download failed' });
@@ -511,9 +572,17 @@ ipcMain.handle('cancel-download', async () => {
 ipcMain.handle('get-download-state', async () => {
   const settings = config.getSettings();
   if (settings.gamePath) {
-    const marker = path.join(settings.gamePath, '.ogfn-installed');
-    if (fs.existsSync(marker)) {
+    // Check if it's an exe directly
+    if (settings.gamePath.endsWith('.exe') && fs.existsSync(settings.gamePath)) {
       return { installed: true, path: settings.gamePath, downloading: false };
+    }
+    // Check if it's a folder with game inside
+    if (fs.existsSync(settings.gamePath)) {
+      const exe = findGameExe(settings.gamePath);
+      if (exe) {
+        config.setSettings({ gamePath: exe });
+        return { installed: true, path: exe, downloading: false };
+      }
     }
   }
   return { installed: false, downloading: false };
